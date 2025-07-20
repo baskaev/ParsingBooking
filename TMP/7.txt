@@ -1,0 +1,72 @@
+from bs4 import BeautifulSoup
+
+def parse_accommodation_conditions(html):
+    """
+    Парсит HTML с условиями размещения и возвращает структурированные данные.
+    
+    Args:
+        html (str): HTML-код с условиями размещения
+        
+    Returns:
+        dict: Словарь с распарсенными данными
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    conditions = {}
+    
+    # Основной контейнер с условиями
+    container = soup.find('div', {'data-testid': 'property-section--content'})
+    if not container:
+        return conditions
+    
+    # Все секции условий разделены горизонтальными линиями
+    sections = container.find_all('div', class_='b0400e5749')
+    
+    for section in sections:
+        # Извлекаем название условия (иконка + текст)
+        title_div = section.find('div', class_='e7addce19e')
+        if not title_div:
+            continue
+            
+        title = title_div.get_text(strip=True)
+        
+        # Извлекаем содержимое условия
+        content_div = section.find('div', class_='c92998be48')
+        if content_div:
+            # Удаляем скрытые элементы (если есть)
+            for hidden in content_div.find_all(attrs={'aria-hidden': 'true'}):
+                hidden.decompose()
+                
+            # Получаем текст содержимого
+            content = content_div.get_text(' ', strip=True)
+            
+            # Обработка специальных случаев
+            if title == 'Кровати для детей':
+                # Для детских кроватей извлекаем дополнительную информацию
+                child_policies = []
+                for p in content_div.find_all('p'):
+                    child_policies.append(p.get_text(strip=True))
+                content = '\n'.join(child_policies)
+            elif title == 'Принимаемые способы оплаты':
+                # Для способов оплаты извлекаем названия карт
+                payment_methods = []
+                for img in content_div.find_all('img'):
+                    if img.has_attr('alt'):
+                        payment_methods.append(img['alt'])
+                for span in content_div.find_all('span', class_='f323fd7e96'):
+                    payment_methods.append(span.get_text(strip=True))
+                content = ', '.join(payment_methods)
+            
+            conditions[title] = content
+    
+    return conditions
+
+# Пример использования
+if __name__ == '__main__':
+    with open('accommodation_conditions.html', 'r', encoding='utf-8') as f:
+        html = f.read()
+    
+    parsed_data = parse_accommodation_conditions(html)
+    for key, value in parsed_data.items():
+        print(f"=== {key} ===")
+        print(value)
+        print()

@@ -1,0 +1,338 @@
+import re
+
+def parse_hotel_name_regex(html):
+    """
+    Парсит имя отеля с помощью регулярного выражения.
+    """
+    match = re.search(r'<h2 class="ddb12f4f86 pp-header__title">(.*?)</h2>', html)
+    return match.group(1).strip() if match else None
+
+
+from bs4 import BeautifulSoup
+
+def parse_hotel_address(html):
+    """
+    Парсит адрес отеля из HTML-кода.
+    
+    Args:
+        html (str): HTML-код содержащий информацию об отеле
+        
+    Returns:
+        str: Адрес отеля или None, если адрес не найден
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Ищем div с классами "b99b6ef58f" и "cb4b7a25d9" - это основной контейнер адреса
+    address_div = soup.find('div', class_=['b99b6ef58f', 'cb4b7a25d9'])
+    
+    if address_div:
+        # Получаем текстовое содержимое первого дочернего элемента
+        # (остальные div внутри - это рейтинг и дополнительная информация)
+        address = address_div.contents[0].strip()
+        return address
+    
+    return None
+
+# Пример использования
+html = '''
+<div class="b99b6ef58f cb4b7a25d9">Bailén, 4-6, Эшампле, 08010 Барселона, Испания<div aria-hidden="true" class="dcf8588897"><div class="b99b6ef58f b99a6d4f7a"><b>Великолепное</b> расположение — оценка 9.3 из 10!<small>(на основе <b>2638</b> отзывов)</small></div><div class="b99b6ef58f">По оценке гостей, <b>проживавших</b> в NH Collection Barcelona Podium.</div></div></div>
+'''
+
+address = parse_hotel_address(html)
+print(address)  # Вывод: Bailén, 4-6, Эшампле, 08010 Барселона, Испания
+
+
+from bs4 import BeautifulSoup
+
+def parse_hotel_description(html):
+    """
+    Парсит описание отеля из HTML-кода.
+    
+    Args:
+        html (str): HTML-код страницы с описанием отеля
+        
+    Returns:
+        str: Описание отеля или None, если не найдено
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Ищем основной блок с описанием
+    description_div = soup.find('div', class_='hp_desc_main_content')
+    if not description_div:
+        return None
+    
+    # Ищем тег с описанием (ищем по data-testid="property-description")
+    description_tag = description_div.find('p', {'data-testid': 'property-description'})
+    if description_tag:
+        return description_tag.get_text(strip=True)
+    
+    return None
+
+# Пример использования:
+html = """
+<div class="hp_desc_main_content">
+<p>
+Возможно, вам доступна Genius-скидка на проживание в NH Collection Barcelona Podium. <a href="https://account.booking.com/auth/oauth2?dt=1752058524&amp;client_id=vO1Kblk7xX9tUn2cpZLS&amp;aid=304142&amp;state=UqIF7rnQPP-b_XyKaxermfOj8LaSxRjX6rqk9IO0ZuIToYhsrGFsvjAVXKZZflCBq8s_zProRC_qhqPbz36lAbREwl0VlyskA4di4vTB0zLFe84CZd4nO1lHvDoRb_C6_Z0jc6gKhyMsR3ixaCj38iY-hWT3vtkciGsLdXAyLOVKRVkDwtJ2yf4_IPX9Gu8tgYu3Ih0E0KQpIuwulM8kyAVHEtkZ7x6-dN8439swFLempPVIrzbPYvmxXudWfdblJcDE55H-aKZyjEd1q7nifc4AuEKA2MsUqf2kc3adYAKlS83gC-67b61c_VHkai0mThkAeWnKRa0yaT_8isMgDNmlNRZ9jujeMAfrOHfpPQfc7LxiD5z3BJfLlBXB82TkbNYJyS0wJvqfQelQwPi8xpe4UoSuQLrRq9VWsgaCR1-m0NZMPcVnJFj9L2yZ0Ro28Ia1wIIwovGHGdKjYLr2PIYTUe1hhL1rp2tY3JEz6MnC9R-A4zqtHxhUBdsVd0YwonJv9RAaNawhIvEQJDjmtQ864xbSReYkVAQHEAHkdI3dNScmsDhYs-yh-JjDbbJTgLMKEvj92vScEjuic2vKjwkyQXCscoqIIG1ZNZci6QvJHg5vwIYRwhAWxjk7SOOpe5hhLONMk2c2s0xsuoXq1QR7Ir1E_U1XJiq5Bctg-NeVCryhO6BhfBG_keIJ3Ay8th1yqNkzzN4KvCGMyRmg24SPx4pYQ8qZDkAXECxL38-e0CUz90JU4z_l0pepSwAO3Z9FJEua3jv675DGd1QclUef2sTwpZuhde0KnyTTwMVout8MyNrsp0cz7nxYFdFUyKxQknEipGysnX-9wzDLd5np09MK0NWfCWk4N5REFwktfGKKXw5hv2Nld8Fx7NEfqJ32cDo&amp;response_type=sso&amp;lang=ru&amp;bkng_action=hotel&amp;redirect_uri=https%3A%2F%2Fsecure.booking.com%2Flogin.html%3Fop%3Doauth_return" class="bui-link">Войдите в аккаунт</a>, чтобы узнать, доступна ли Genius-скидка на выбранные вами даты.
+</p>
+<p>
+Наличие Genius-скидок на это жилье зависит от дат бронирования, дат проживания и других действующих спецпредложений.
+</p>
+<div data-capla-component-boundary="b-property-web-property-page/PropertyDescriptionDesktop" data-capla-hydration="0"><div class="c3bdfd4ac2" style="--bui_box_spaced_padding--s: 0;"><div></div><div></div><div></div><div></div><p data-testid="property-description" class="b99b6ef58f f1152bae71">Отель NH Collection Barcelona Pódium расположен в тихом районе в центре Барселоны. К услугам гостей стильные современные номера, бесплатный Wi-Fi, сауна, тренажерный зал и терраса на крыше с бассейном, откуда открывается вид на город.
+
+В числе удобств номеров просторные спальни, кондиционер, мини-бар и телевизор со спутниковыми каналами. Гостям предоставляется выбор подушек и путеводитель по Барселоне.
+
+В отеле NH Collection Barcelona Pódium фасад XIX века гармонично сочетается с современным дизайном интерьера. Отель окружен модернистскими зданиями барселонского района Эшампле.
+
+Отель находится в 800 метрах от площади Каталонии и бульвара Рамбла, недалеко от Готического квартала. До парка Цитадели и пристани Порт-Олимпик можно дойти пешком.
+
+От отеля NH Podium Collection можно легко добраться на общественном транспорте до всех районов города. Всего в 200 метрах от отеля находится станция метро Arc de Triomf.
+
+В ресторане отеля NH Collection Barcelona Podium подают блюда средиземноморской кухни. К услугам гостей также лаунж-бар. По утрам гостям готовят полезный завтрак. В летние месяцы ресторан закрыт.</p><div></div><p data-testid="PropertyDescriptionOsmDisclaimer" class="fff1944c52 fb14de7f14">Расстояние, указанное в описании, рассчитано с помощью © OpenStreetMap</p></div></div>
+</div>
+"""
+
+description = parse_hotel_description(html)
+print(description)
+
+
+from bs4 import BeautifulSoup
+
+def parse_reviews(html_content):
+    """
+    Парсит категории и оценки отзывов из HTML-кода.
+    
+    Args:
+        html_content (str): HTML-код страницы с отзывами
+        
+    Returns:
+        dict: Словарь с категориями и соответствующими оценками
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    reviews_data = {}
+    
+    # Находим все блоки с категориями оценок
+    review_items = soup.find_all('div', {'data-testid': 'review-subscore'})
+    
+    for item in review_items:
+        # Извлекаем название категории
+        category_name = item.find('span', class_='d96a4619c0').text.strip()
+        
+        # Извлекаем оценку (заменяем запятую на точку для преобразования в float)
+        rating = item.find('div', class_='f87e152973').text.strip().replace(',', '.')
+        
+        reviews_data[category_name] = float(rating)
+    
+    return reviews_data
+
+# Пример использования
+html = """ ваш HTML код здесь """
+reviews = parse_reviews(html)
+print(reviews)
+
+
+
+from bs4 import BeautifulSoup
+
+def parse_landmarks(html_content):
+    """
+    Парсит HTML с информацией о ближайших ориентирах и возвращает структурированные данные.
+    
+    Args:
+        html_content (str): HTML-код блока с ориентирами
+        
+    Returns:
+        dict: Словарь с категориями и списками ориентиров
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    result = {}
+    
+    # Находим все блоки с категориями
+    poi_blocks = soup.find_all('div', {'data-testid': 'poi-block'})
+    
+    for block in poi_blocks:
+        # Извлекаем название категории
+        category = block.find('div', class_='e7addce19e').get_text(strip=True)
+        
+        # Извлекаем все элементы списка в этой категории
+        items = []
+        for li in block.find_all('li', class_='b0bf4dc58f'):
+            name = li.find('div', class_='aa225776f2').get_text(strip=True)
+            
+            # Для некоторых категорий есть подтипы (например, "Ресторан" перед названием)
+            subtype = li.find('span', class_='ea6d30da3a')
+            if subtype:
+                name = f"{subtype.get_text(strip=True)} {name}"
+            
+            distance = li.find('div', class_='b99b6ef58f').get_text(strip=True)
+            
+            items.append({
+                'name': name,
+                'distance': distance
+            })
+        
+        result[category] = items
+    
+    return result
+
+
+
+from bs4 import BeautifulSoup
+
+def parse_hotel_amenities(html_content):
+    """
+    Парсит HTML-код с информацией об удобствах отеля и возвращает структурированные данные.
+    
+    Args:
+        html_content (str): HTML-код страницы с удобствами
+        
+    Returns:
+        dict: Словарь с категориями удобств и списком услуг в каждой категории
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    amenities_data = {}
+    
+    # Находим все группы удобств
+    facility_groups = soup.find_all('div', {'data-testid': 'facility-group-container'})
+    
+    for group in facility_groups:
+        # Извлекаем название категории
+        category_name = group.find('h3').get_text(strip=True)
+        
+        # Извлекаем все элементы удобств в этой категории
+        items = []
+        for item in group.find_all('li'):
+            item_text = item.find('span', class_='f6b6d2a959').get_text(strip=True)
+            
+            # Проверяем, есть ли пометка о платной услуге
+            paid_tag = item.find('span', class_='f323fd7e96')
+            is_paid = paid_tag.get_text(strip=True) if paid_tag else None
+            
+            items.append({
+                'name': item_text,
+                'is_paid': bool(is_paid)
+            })
+        
+        amenities_data[category_name] = items
+    
+    return amenities_data
+
+# Пример использования:
+# with open('hotel_amenities.html', 'r', encoding='utf-8') as file:
+#     html = file.read()
+# amenities = parse_hotel_amenities(html)
+# print(amenities)
+
+
+
+
+from bs4 import BeautifulSoup
+
+def parse_accommodation_conditions(html):
+    """
+    Парсит HTML с условиями размещения и возвращает структурированные данные.
+    
+    Args:
+        html (str): HTML-код с условиями размещения
+        
+    Returns:
+        dict: Словарь с распарсенными данными
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    conditions = {}
+    
+    # Основной контейнер с условиями
+    container = soup.find('div', {'data-testid': 'property-section--content'})
+    if not container:
+        return conditions
+    
+    # Все секции условий разделены горизонтальными линиями
+    sections = container.find_all('div', class_='b0400e5749')
+    
+    for section in sections:
+        # Извлекаем название условия (иконка + текст)
+        title_div = section.find('div', class_='e7addce19e')
+        if not title_div:
+            continue
+            
+        title = title_div.get_text(strip=True)
+        
+        # Извлекаем содержимое условия
+        content_div = section.find('div', class_='c92998be48')
+        if content_div:
+            # Удаляем скрытые элементы (если есть)
+            for hidden in content_div.find_all(attrs={'aria-hidden': 'true'}):
+                hidden.decompose()
+                
+            # Получаем текст содержимого
+            content = content_div.get_text(' ', strip=True)
+            
+            # Обработка специальных случаев
+            if title == 'Кровати для детей':
+                # Для детских кроватей извлекаем дополнительную информацию
+                child_policies = []
+                for p in content_div.find_all('p'):
+                    child_policies.append(p.get_text(strip=True))
+                content = '\n'.join(child_policies)
+            elif title == 'Принимаемые способы оплаты':
+                # Для способов оплаты извлекаем названия карт
+                payment_methods = []
+                for img in content_div.find_all('img'):
+                    if img.has_attr('alt'):
+                        payment_methods.append(img['alt'])
+                for span in content_div.find_all('span', class_='f323fd7e96'):
+                    payment_methods.append(span.get_text(strip=True))
+                content = ', '.join(payment_methods)
+            
+            conditions[title] = content
+    
+    return conditions
+
+# Пример использования
+if __name__ == '__main__':
+    with open('accommodation_conditions.html', 'r', encoding='utf-8') as f:
+        html = f.read()
+    
+    parsed_data = parse_accommodation_conditions(html)
+    for key, value in parsed_data.items():
+        print(f"=== {key} ===")
+        print(value)
+        print()
+
+
+from bs4 import BeautifulSoup
+
+def parse_notes(html_content):
+    """
+    Парсит блок с примечаниями из HTML-контента.
+    
+    Args:
+        html_content (str): HTML-код страницы
+        
+    Returns:
+        list: Список строк с примечаниями или None, если блок не найден
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    # Находим основной контейнер с примечаниями
+    notes_section = soup.find('div', {'data-testid': 'property-section--content'})
+    
+    if not notes_section:
+        return None
+    
+    # Извлекаем все параграфы с текстом
+    notes_paragraphs = notes_section.find_all('p')
+    
+    # Очищаем текст от лишних пробелов и специальных символов (например, &nbsp;)
+    notes = [p.get_text(strip=True).replace('\xa0', ' ') for p in notes_paragraphs]
+    
+    return notes
+
+# Пример использования
+if __name__ == "__main__":
+    html = """
+    <div data-testid="property-section--content" class="b99b6ef58f"><div class="c3bdfd4ac2 a0ab5da06c d46ff48a92 f728e61e72 d0acd69e66 c256f1a28a"><div class="c85a1d1c49"><p>Обратите внимание, что в августе ресторан The Bistro закрыт. В остальное время года ресторан работает с 11:00 до 13:00 без выходных.</p><p>При бронировании 8 и более номеров действует особый порядок проживания и взимается дополнительная плата.</p><p>По прибытии необходимо предъявить кредитную карту, которая использовалась для оформления бронирования. Имя и фамилия владельца кредитной карты должны совпадать с именем и фамилией гостя.</p></div></div></div>
+    """
+    
+    notes = parse_notes(html)
+    for i, note in enumerate(notes, 1):
+        print(f"{i}. {note}")

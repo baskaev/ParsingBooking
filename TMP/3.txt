@@ -1,0 +1,51 @@
+from bs4 import BeautifulSoup
+
+def parse_hotel_description(html):
+    """
+    Парсит описание отеля из HTML-кода.
+    
+    Args:
+        html (str): HTML-код страницы с описанием отеля
+        
+    Returns:
+        str: Описание отеля или None, если не найдено
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Ищем основной блок с описанием
+    description_div = soup.find('div', class_='hp_desc_main_content')
+    if not description_div:
+        return None
+    
+    # Ищем тег с описанием (ищем по data-testid="property-description")
+    description_tag = description_div.find('p', {'data-testid': 'property-description'})
+    if description_tag:
+        return description_tag.get_text(strip=True)
+    
+    return None
+
+# Пример использования:
+html = """
+<div class="hp_desc_main_content">
+<p>
+Возможно, вам доступна Genius-скидка на проживание в NH Collection Barcelona Podium. <a href="https://account.booking.com/auth/oauth2?dt=1752058524&amp;client_id=vO1Kblk7xX9tUn2cpZLS&amp;aid=304142&amp;state=UqIF7rnQPP-b_XyKaxermfOj8LaSxRjX6rqk9IO0ZuIToYhsrGFsvjAVXKZZflCBq8s_zProRC_qhqPbz36lAbREwl0VlyskA4di4vTB0zLFe84CZd4nO1lHvDoRb_C6_Z0jc6gKhyMsR3ixaCj38iY-hWT3vtkciGsLdXAyLOVKRVkDwtJ2yf4_IPX9Gu8tgYu3Ih0E0KQpIuwulM8kyAVHEtkZ7x6-dN8439swFLempPVIrzbPYvmxXudWfdblJcDE55H-aKZyjEd1q7nifc4AuEKA2MsUqf2kc3adYAKlS83gC-67b61c_VHkai0mThkAeWnKRa0yaT_8isMgDNmlNRZ9jujeMAfrOHfpPQfc7LxiD5z3BJfLlBXB82TkbNYJyS0wJvqfQelQwPi8xpe4UoSuQLrRq9VWsgaCR1-m0NZMPcVnJFj9L2yZ0Ro28Ia1wIIwovGHGdKjYLr2PIYTUe1hhL1rp2tY3JEz6MnC9R-A4zqtHxhUBdsVd0YwonJv9RAaNawhIvEQJDjmtQ864xbSReYkVAQHEAHkdI3dNScmsDhYs-yh-JjDbbJTgLMKEvj92vScEjuic2vKjwkyQXCscoqIIG1ZNZci6QvJHg5vwIYRwhAWxjk7SOOpe5hhLONMk2c2s0xsuoXq1QR7Ir1E_U1XJiq5Bctg-NeVCryhO6BhfBG_keIJ3Ay8th1yqNkzzN4KvCGMyRmg24SPx4pYQ8qZDkAXECxL38-e0CUz90JU4z_l0pepSwAO3Z9FJEua3jv675DGd1QclUef2sTwpZuhde0KnyTTwMVout8MyNrsp0cz7nxYFdFUyKxQknEipGysnX-9wzDLd5np09MK0NWfCWk4N5REFwktfGKKXw5hv2Nld8Fx7NEfqJ32cDo&amp;response_type=sso&amp;lang=ru&amp;bkng_action=hotel&amp;redirect_uri=https%3A%2F%2Fsecure.booking.com%2Flogin.html%3Fop%3Doauth_return" class="bui-link">Войдите в аккаунт</a>, чтобы узнать, доступна ли Genius-скидка на выбранные вами даты.
+</p>
+<p>
+Наличие Genius-скидок на это жилье зависит от дат бронирования, дат проживания и других действующих спецпредложений.
+</p>
+<div data-capla-component-boundary="b-property-web-property-page/PropertyDescriptionDesktop" data-capla-hydration="0"><div class="c3bdfd4ac2" style="--bui_box_spaced_padding--s: 0;"><div></div><div></div><div></div><div></div><p data-testid="property-description" class="b99b6ef58f f1152bae71">Отель NH Collection Barcelona Pódium расположен в тихом районе в центре Барселоны. К услугам гостей стильные современные номера, бесплатный Wi-Fi, сауна, тренажерный зал и терраса на крыше с бассейном, откуда открывается вид на город.
+
+В числе удобств номеров просторные спальни, кондиционер, мини-бар и телевизор со спутниковыми каналами. Гостям предоставляется выбор подушек и путеводитель по Барселоне.
+
+В отеле NH Collection Barcelona Pódium фасад XIX века гармонично сочетается с современным дизайном интерьера. Отель окружен модернистскими зданиями барселонского района Эшампле.
+
+Отель находится в 800 метрах от площади Каталонии и бульвара Рамбла, недалеко от Готического квартала. До парка Цитадели и пристани Порт-Олимпик можно дойти пешком.
+
+От отеля NH Podium Collection можно легко добраться на общественном транспорте до всех районов города. Всего в 200 метрах от отеля находится станция метро Arc de Triomf.
+
+В ресторане отеля NH Collection Barcelona Podium подают блюда средиземноморской кухни. К услугам гостей также лаунж-бар. По утрам гостям готовят полезный завтрак. В летние месяцы ресторан закрыт.</p><div></div><p data-testid="PropertyDescriptionOsmDisclaimer" class="fff1944c52 fb14de7f14">Расстояние, указанное в описании, рассчитано с помощью © OpenStreetMap</p></div></div>
+</div>
+"""
+
+description = parse_hotel_description(html)
+print(description)

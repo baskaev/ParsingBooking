@@ -1,0 +1,42 @@
+from bs4 import BeautifulSoup
+
+def parse_landmarks(html_content):
+    """
+    Парсит HTML с информацией о ближайших ориентирах и возвращает структурированные данные.
+    
+    Args:
+        html_content (str): HTML-код блока с ориентирами
+        
+    Returns:
+        dict: Словарь с категориями и списками ориентиров
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    result = {}
+    
+    # Находим все блоки с категориями
+    poi_blocks = soup.find_all('div', {'data-testid': 'poi-block'})
+    
+    for block in poi_blocks:
+        # Извлекаем название категории
+        category = block.find('div', class_='e7addce19e').get_text(strip=True)
+        
+        # Извлекаем все элементы списка в этой категории
+        items = []
+        for li in block.find_all('li', class_='b0bf4dc58f'):
+            name = li.find('div', class_='aa225776f2').get_text(strip=True)
+            
+            # Для некоторых категорий есть подтипы (например, "Ресторан" перед названием)
+            subtype = li.find('span', class_='ea6d30da3a')
+            if subtype:
+                name = f"{subtype.get_text(strip=True)} {name}"
+            
+            distance = li.find('div', class_='b99b6ef58f').get_text(strip=True)
+            
+            items.append({
+                'name': name,
+                'distance': distance
+            })
+        
+        result[category] = items
+    
+    return result

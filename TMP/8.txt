@@ -1,0 +1,37 @@
+from bs4 import BeautifulSoup
+
+def parse_notes(html_content):
+    """
+    Парсит блок с примечаниями из HTML-контента.
+    
+    Args:
+        html_content (str): HTML-код страницы
+        
+    Returns:
+        list: Список строк с примечаниями или None, если блок не найден
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    # Находим основной контейнер с примечаниями
+    notes_section = soup.find('div', {'data-testid': 'property-section--content'})
+    
+    if not notes_section:
+        return None
+    
+    # Извлекаем все параграфы с текстом
+    notes_paragraphs = notes_section.find_all('p')
+    
+    # Очищаем текст от лишних пробелов и специальных символов (например, &nbsp;)
+    notes = [p.get_text(strip=True).replace('\xa0', ' ') for p in notes_paragraphs]
+    
+    return notes
+
+# Пример использования
+if __name__ == "__main__":
+    html = """
+    <div data-testid="property-section--content" class="b99b6ef58f"><div class="c3bdfd4ac2 a0ab5da06c d46ff48a92 f728e61e72 d0acd69e66 c256f1a28a"><div class="c85a1d1c49"><p>Обратите внимание, что в августе ресторан The Bistro закрыт. В остальное время года ресторан работает с 11:00 до 13:00 без выходных.</p><p>При бронировании 8 и более номеров действует особый порядок проживания и взимается дополнительная плата.</p><p>По прибытии необходимо предъявить кредитную карту, которая использовалась для оформления бронирования. Имя и фамилия владельца кредитной карты должны совпадать с именем и фамилией гостя.</p></div></div></div>
+    """
+    
+    notes = parse_notes(html)
+    for i, note in enumerate(notes, 1):
+        print(f"{i}. {note}")

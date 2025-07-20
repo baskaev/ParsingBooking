@@ -1,0 +1,8 @@
+import re
+
+def parse_hotel_name_regex(html):
+    """
+    Парсит имя отеля с помощью регулярного выражения.
+    """
+    match = re.search(r'<h2 class="ddb12f4f86 pp-header__title">(.*?)</h2>', html)
+    return match.group(1).strip() if match else None

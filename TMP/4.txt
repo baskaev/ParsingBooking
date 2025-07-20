@@ -1,0 +1,33 @@
+from bs4 import BeautifulSoup
+
+def parse_reviews(html_content):
+    """
+    Парсит категории и оценки отзывов из HTML-кода.
+    
+    Args:
+        html_content (str): HTML-код страницы с отзывами
+        
+    Returns:
+        dict: Словарь с категориями и соответствующими оценками
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    reviews_data = {}
+    
+    # Находим все блоки с категориями оценок
+    review_items = soup.find_all('div', {'data-testid': 'review-subscore'})
+    
+    for item in review_items:
+        # Извлекаем название категории
+        category_name = item.find('span', class_='d96a4619c0').text.strip()
+        
+        # Извлекаем оценку (заменяем запятую на точку для преобразования в float)
+        rating = item.find('div', class_='f87e152973').text.strip().replace(',', '.')
+        
+        reviews_data[category_name] = float(rating)
+    
+    return reviews_data
+
+# Пример использования
+html = """ ваш HTML код здесь """
+reviews = parse_reviews(html)
+print(reviews)

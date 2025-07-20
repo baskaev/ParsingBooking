@@ -1,0 +1,45 @@
+from bs4 import BeautifulSoup
+
+def parse_hotel_amenities(html_content):
+    """
+    Парсит HTML-код с информацией об удобствах отеля и возвращает структурированные данные.
+    
+    Args:
+        html_content (str): HTML-код страницы с удобствами
+        
+    Returns:
+        dict: Словарь с категориями удобств и списком услуг в каждой категории
+    """
+    soup = BeautifulSoup(html_content, 'html.parser')
+    amenities_data = {}
+    
+    # Находим все группы удобств
+    facility_groups = soup.find_all('div', {'data-testid': 'facility-group-container'})
+    
+    for group in facility_groups:
+        # Извлекаем название категории
+        category_name = group.find('h3').get_text(strip=True)
+        
+        # Извлекаем все элементы удобств в этой категории
+        items = []
+        for item in group.find_all('li'):
+            item_text = item.find('span', class_='f6b6d2a959').get_text(strip=True)
+            
+            # Проверяем, есть ли пометка о платной услуге
+            paid_tag = item.find('span', class_='f323fd7e96')
+            is_paid = paid_tag.get_text(strip=True) if paid_tag else None
+            
+            items.append({
+                'name': item_text,
+                'is_paid': bool(is_paid)
+            })
+        
+        amenities_data[category_name] = items
+    
+    return amenities_data
+
+# Пример использования:
+# with open('hotel_amenities.html', 'r', encoding='utf-8') as file:
+#     html = file.read()
+# amenities = parse_hotel_amenities(html)
+# print(amenities)

@@ -1,0 +1,32 @@
+from bs4 import BeautifulSoup
+
+def parse_hotel_address(html):
+    """
+    Парсит адрес отеля из HTML-кода.
+    
+    Args:
+        html (str): HTML-код содержащий информацию об отеле
+        
+    Returns:
+        str: Адрес отеля или None, если адрес не найден
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Ищем div с классами "b99b6ef58f" и "cb4b7a25d9" - это основной контейнер адреса
+    address_div = soup.find('div', class_=['b99b6ef58f', 'cb4b7a25d9'])
+    
+    if address_div:
+        # Получаем текстовое содержимое первого дочернего элемента
+        # (остальные div внутри - это рейтинг и дополнительная информация)
+        address = address_div.contents[0].strip()
+        return address
+    
+    return None
+
+# Пример использования
+html = '''
+<div class="b99b6ef58f cb4b7a25d9">Bailén, 4-6, Эшампле, 08010 Барселона, Испания<div aria-hidden="true" class="dcf8588897"><div class="b99b6ef58f b99a6d4f7a"><b>Великолепное</b> расположение — оценка 9.3 из 10!<small>(на основе <b>2638</b> отзывов)</small></div><div class="b99b6ef58f">По оценке гостей, <b>проживавших</b> в NH Collection Barcelona Podium.</div></div></div>
+'''
+
+address = parse_hotel_address(html)
+print(address)  # Вывод: Bailén, 4-6, Эшампле, 08010 Барселона, Испания
